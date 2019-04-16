@@ -1,5 +1,8 @@
 # fastify-single-user-cache
 
+[![Build
+Status](https://travis-ci.com/mcollina/fastify-single-user-cache.svg?branch=master)](https://travis-ci.com/mcollina/fastify-single-user-cache)
+
 Provide a cache for each request, so multiple fetches of the same data
 are not performed. Moreover, it provides an API to batch requests, so
 that a bulk query can be done to a database or an external endpoint.
