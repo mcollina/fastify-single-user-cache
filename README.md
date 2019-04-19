@@ -33,8 +33,9 @@ app.register(async function (app) {
 
   // The result of this functions will be caches for the lifetime
   // of the request.
-  app.data.add('fetchSomething', async (queries) => {
-    console.log(queries)
+  app.data.add('fetchSomething', async (queries, { req, reply }) => {
+    // queries include an array of all the requested ids
+    reply.log.info({ queries }, 'executing fetchSomething')
 
     // It must return an array of length queries.length.
     return queries.map((k) => {

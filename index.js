@@ -10,7 +10,7 @@ module.exports = fp(async function (app) {
   app.decorateRequest('data', null)
   app.decorateReply('data', null)
   app.addHook('onRequest', function (req, reply, next) {
-    req.data = reply.data = factory.create()
+    req.data = reply.data = factory.create({ req, reply })
     next()
   })
 })

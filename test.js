@@ -13,14 +13,18 @@ function build (t, opts) {
 }
 
 test('fetch data and cache things from request', async (t) => {
-  t.plan(2)
+  t.plan(4)
 
   const app = build(t)
+  let _req
+  let _reply
 
   // The plugin is needed to be able to access the cache.
   app.register(async function (app) {
-    app.data.add('fetchSomething', async (queries) => {
+    app.data.add('fetchSomething', async (queries, context) => {
       t.deepEqual(queries, [42, 24])
+      t.equal(context.req, _req)
+      t.equal(context.reply, _reply)
 
       return queries.map((k) => {
         return { k }
@@ -28,6 +32,8 @@ test('fetch data and cache things from request', async (t) => {
     })
 
     app.get('/', async (req, reply) => {
+      _req = req
+      _reply = reply
       const data = await Promise.all([
         req.data.fetchSomething(42),
         req.data.fetchSomething(24)
@@ -47,14 +53,18 @@ test('fetch data and cache things from request', async (t) => {
 })
 
 test('fetch data and cache things from reply', async (t) => {
-  t.plan(2)
+  t.plan(4)
 
   const app = build(t)
+  let _req
+  let _reply
 
   // The plugin is needed to be able to access the cache.
   app.register(async function (app) {
-    app.data.add('fetchSomething', async (queries) => {
+    app.data.add('fetchSomething', async (queries, context) => {
       t.deepEqual(queries, [42, 24])
+      t.equal(context.req, _req)
+      t.equal(context.reply, _reply)
 
       return queries.map((k) => {
         return { k }
@@ -62,6 +72,8 @@ test('fetch data and cache things from reply', async (t) => {
     })
 
     app.get('/', async (req, reply) => {
+      _req = req
+      _reply = reply
       const data = await Promise.all([
         reply.data.fetchSomething(42),
         reply.data.fetchSomething(24)
