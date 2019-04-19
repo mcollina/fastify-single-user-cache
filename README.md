@@ -25,7 +25,11 @@ const fastify = require('fastify')
 
 const app = fastify()
 
-app.register(require('fastify-single-user-cache'), opts)
+app.register(require('fastify-single-user-cache'), {
+  // key  is the property that is going to be decorated in the
+  // app, Request and Reply
+  key: 'data'
+})
 
 // We wrap our data definitions and routes in a plugin, so
 // the cache plugin can actually load asynchronously.

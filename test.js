@@ -12,82 +12,89 @@ function build (t, opts) {
   return app
 }
 
-test('fetch data and cache things from request', async (t) => {
-  t.plan(4)
+function buildTests (opts = {}) {
+  const key = opts.key || 'data'
 
-  const app = build(t)
-  let _req
-  let _reply
+  test('fetch data and cache things from request', async (t) => {
+    t.plan(4)
 
-  // The plugin is needed to be able to access the cache.
-  app.register(async function (app) {
-    app.data.add('fetchSomething', async (queries, context) => {
-      t.deepEqual(queries, [42, 24])
-      t.equal(context.req, _req)
-      t.equal(context.reply, _reply)
+    const app = build(t, opts)
+    let _req
+    let _reply
 
-      return queries.map((k) => {
-        return { k }
+    // The plugin is needed to be able to access the cache.
+    app.register(async function (app) {
+      app[key].add('fetchSomething', async (queries, context) => {
+        t.deepEqual(queries, [42, 24])
+        t.equal(context.req, _req)
+        t.equal(context.reply, _reply)
+
+        return queries.map((k) => {
+          return { k }
+        })
+      })
+
+      app.get('/', async (req, reply) => {
+        _req = req
+        _reply = reply
+        const data = await Promise.all([
+          req[key].fetchSomething(42),
+          req[key].fetchSomething(24)
+        ])
+
+        return data
       })
     })
 
-    app.get('/', async (req, reply) => {
-      _req = req
-      _reply = reply
-      const data = await Promise.all([
-        req.data.fetchSomething(42),
-        req.data.fetchSomething(24)
-      ])
+    const res = await app.inject('/')
 
-      return data
-    })
+    t.deepEqual(JSON.parse(res.body), [{
+      k: 42
+    }, {
+      k: 24
+    }])
   })
 
-  const res = await app.inject('/')
+  test('fetch data and cache things from reply', async (t) => {
+    t.plan(4)
 
-  t.deepEqual(JSON.parse(res.body), [{
-    k: 42
-  }, {
-    k: 24
-  }])
-})
+    const app = build(t, opts)
+    let _req
+    let _reply
 
-test('fetch data and cache things from reply', async (t) => {
-  t.plan(4)
+    // The plugin is needed to be able to access the cache.
+    app.register(async function (app) {
+      app[key].add('fetchSomething', async (queries, context) => {
+        t.deepEqual(queries, [42, 24])
+        t.equal(context.req, _req)
+        t.equal(context.reply, _reply)
 
-  const app = build(t)
-  let _req
-  let _reply
+        return queries.map((k) => {
+          return { k }
+        })
+      })
 
-  // The plugin is needed to be able to access the cache.
-  app.register(async function (app) {
-    app.data.add('fetchSomething', async (queries, context) => {
-      t.deepEqual(queries, [42, 24])
-      t.equal(context.req, _req)
-      t.equal(context.reply, _reply)
+      app.get('/', async (req, reply) => {
+        _req = req
+        _reply = reply
+        const data = await Promise.all([
+          reply[key].fetchSomething(42),
+          reply[key].fetchSomething(24)
+        ])
 
-      return queries.map((k) => {
-        return { k }
+        return data
       })
     })
 
-    app.get('/', async (req, reply) => {
-      _req = req
-      _reply = reply
-      const data = await Promise.all([
-        reply.data.fetchSomething(42),
-        reply.data.fetchSomething(24)
-      ])
+    const res = await app.inject('/')
 
-      return data
-    })
+    t.deepEqual(JSON.parse(res.body), [{
+      k: 42
+    }, {
+      k: 24
+    }])
   })
+}
 
-  const res = await app.inject('/')
-
-  t.deepEqual(JSON.parse(res.body), [{
-    k: 42
-  }, {
-    k: 24
-  }])
-})
+buildTests()
+buildTests({ key: 'foobar' })
